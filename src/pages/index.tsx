@@ -1,3 +1,48 @@
+import { ApolloClient, HttpLink, from, InMemoryCache, gql, fromError } from '@apollo/client';
+import { onError } from '@apollo/link-error';
+
+import fetch from 'isomorphic-unfetch';
+
+const httpLink = new HttpLink({
+  uri: 'https://graphql-compose.herokuapp.com/northwind',
+  fetch,
+});
+
+const errorCatch = onError((params) => {
+  console.log(params);
+});
+
+const apolloClient = new ApolloClient({
+  link: errorCatch.concat(from([httpLink])),
+  cache: new InMemoryCache({}).restore({}),
+});
+
+if (typeof window !== 'undefined') {
+  (window as any).ac = apolloClient;
+}
+apolloClient
+  .query({
+    query: gql`
+      query TestQuery {
+        viewer {
+          orderPagination {
+            count
+            items {
+              orderID
+              orderDate
+              employee {
+                firstName
+                lastName
+                _id
+              }
+            }
+          }
+        }
+      }
+    `,
+  })
+  .then((res) => console.log(res));
+
 function IndexPage() {
   return (
     <div>
@@ -29,7 +74,7 @@ function IndexPage() {
       </div>
 
       <div style={{ marginTop: 50 }}>
-        <h4>🛑 NOTICE</h4>
+        <h4> NOTICE</h4>
         <code>__generated__</code> folders should be added to <code>.gitignore</code> file.
         It&apos;s bad to keep generated files in repo because it complicates code review. You need
         to generate files everytime before you build or start app in watch mode. In this repo I keep
