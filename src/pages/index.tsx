@@ -1,4 +1,4 @@
-import { ApolloClient, HttpLink, from, InMemoryCache, gql, fromError } from '@apollo/client';
+import { ApolloClient, HttpLink, from, InMemoryCache, gql } from '@apollo/client';
 import { onError } from '@apollo/link-error';
 
 import fetch from 'isomorphic-unfetch';
@@ -20,28 +20,35 @@ const apolloClient = new ApolloClient({
 if (typeof window !== 'undefined') {
   (window as any).ac = apolloClient;
 }
-apolloClient
-  .query({
-    query: gql`
-      query TestQuery {
-        viewer {
-          orderPagination {
-            count
-            items {
-              orderID
-              orderDate
-              employee {
-                firstName
-                lastName
-                _id
-              }
-            }
+const query = gql`
+  query OrderListQuery {
+    viewer {
+      orderPagination(perPage: 10) {
+        count
+        items {
+          orderID
+          orderDate
+          employee {
+            firstName
+            lastName
           }
         }
       }
-    `,
+    }
+  }
+`;
+
+if (typeof window !== 'undefined') {
+  (window as any).ac = apolloClient;
+}
+
+apolloClient
+  .query({
+    query,
   })
-  .then((res) => console.log(res));
+  .then((res) => {
+    console.log(res);
+  });
 
 function IndexPage() {
   return (
@@ -74,7 +81,7 @@ function IndexPage() {
       </div>
 
       <div style={{ marginTop: 50 }}>
-        <h4> NOTICE</h4>
+        <h4>🛑 NOTICE</h4>
         <code>__generated__</code> folders should be added to <code>.gitignore</code> file.
         It&apos;s bad to keep generated files in repo because it complicates code review. You need
         to generate files everytime before you build or start app in watch mode. In this repo I keep
